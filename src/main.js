@@ -6,6 +6,9 @@ import "izitoast/dist/css/iziToast.min.css";
 import SimpleLightbox from "simplelightbox";
 import "simplelightbox/dist/simple-lightbox.min.css";
 
+import { getImg } from './js/pixabay-api';
+import { createGallery } from './js/render-functions';
+
 
 const form = document.querySelector(".form");
 const input = document.querySelector(".search-input");
@@ -18,11 +21,9 @@ const myGallery = new SimpleLightbox('.gallery a', {
   docClose: true,
 });
 
-
-
 form.addEventListener("submit", makeGallery);
 
-// перевірка інпуту
+// global
 
 let inputValue;
 let currentPage = 1;
@@ -31,12 +32,15 @@ const perPage = 15;
 
 
 async function makeGallery(e) {
+    // base
     e.preventDefault();
     const list = document.querySelector(".gallery");
     list.innerHTML = '';
     currentPage = 1;
-   showLoader(true);
+    showLoader(true);
     inputValue = input.value;
+
+
     if (!inputValue) {
         loadMoreBtnOff();
         errorMess('Value cannot be empty');
@@ -46,7 +50,7 @@ async function makeGallery(e) {
             if (data.hits.length === 0)
             {loadMoreBtnOff();
                 errorMess("Sorry, there are no images matching your search query. Please try again!");
-            } else {showLoader(true);
+        } else {try {showLoader(true);
                 maxPage = Math.ceil(data.totalHits / perPage);
                 lastPage();
                 const images = data.hits;
@@ -56,6 +60,9 @@ async function makeGallery(e) {
                 const height = card.getBoundingClientRect().height * 2;
                 window.scrollBy(0, height);
                 myGallery.refresh();
+            } catch {
+                console.log("makeGallery error");
+                }
                 }
             } catch (error) {
         errorMess("Something wrong=(");
@@ -80,15 +87,6 @@ const errorMess = (messege) => {
     messageSize: 12,
 })
 }
-
-// запит
-
-import {getImg} from './js/pixabay-api'
-
-    
-// рендер на сторінку
-    
-import {createGallery} from './js/render-functions'
 
 const showLoader = (state) => {
   const loader = document.querySelector('.loader');
@@ -116,6 +114,7 @@ async function loadMoreBtnClick() {
     const images = data.hits;
     createGallery(images);
     loadMoreBtnOn();
+    myGallery.refresh();
     lastPage();
 };
 
